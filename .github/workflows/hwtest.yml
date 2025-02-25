@@ -1,0 +1,72 @@
+name: Hello World + Local Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
+        submodules: recursive
+
+    - name: Set up dependencies
+      run: sudo apt-get install libsdl2-dev
+
+    - name: Build project
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Make run_test.sh executable
+      run: chmod +x rom-archive/tests/run_test.sh
+
+    - name: Run local tests
+      run: |
+        cd build
+        ctest -C Release --output-on-failure
+
+    - name: Start Xvfb
+      run: Xvfb :99 &
+
+    - name: Set display environment variable
+      run: echo "DISPLAY=:99" >> $GITHUB_ENV
+
+    - name: Run test for hello_world1
+      run: |
+        cd rom-archive/tests
+        ./run_test.sh ./hello_world1 ../../build/unengine ../hws/hello_world1.slug
+        echo "Return code: $?"
+        if [ $? -ne 0 ]; then
+          echo "Test hello_world1 failed"
+          exit 1
+        fi
+
+    - name: Run test for hello_world2
+      run: |
+        cd rom-archive/tests
+        ./run_test.sh ./hello_world2 ../../build/unengine ../hws/hello_world2.slug
+        echo "Return code: $?"
+        if [ $? -ne 0 ]; then
+          echo "Test hello_world2 failed"
+          exit 1
+        fi
+
+    - name: Run test for hello_world3
+      run: |
+        cd rom-archive/tests
+        ./run_test.sh ./hello_world3 ../../build/unengine ../hws/hello_world3.slug
+        echo "Return code: $?"
+        if [ $? -ne 0 ]; then
+          echo "Test hello_world3 failed"
+          exit 1
+        fi
