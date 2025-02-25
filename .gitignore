@@ -1,0 +1,6 @@
+build/
+doc/report.pdf
+.cache/
+.DS_Store
+.gitconfig
+.vscode/
